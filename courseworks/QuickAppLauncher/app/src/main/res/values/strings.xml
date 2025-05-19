@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QuickAppLauncher</string>
+    <string name="app_title">Quick App Launcher</string>
+    <string name="second_activity_button">Second Activity</string>
+    <string name="google_search_button">Google Search</string>
+    <string name="second_activity_title">Second Activity</string>
+    <string name="message_placeholder">Message will appear here</string>
+</resources>
