@@ -32,8 +32,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
     // Button images and positions
     private var startButtonBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.start)
     private var pauseButtonBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pause)
+    private var restartButtonBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.start) // Reusing start button for restart
     private var startButtonRect = Rect()
     private var pauseButtonRect = Rect()
+    private var restartButtonRect = Rect()
 
     // Score display
     private val scorePaint = Paint().apply {
@@ -44,13 +46,22 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         setShadowLayer(3f, 2f, 2f, Color.BLACK) // Add shadow for better visibility
     }
 
+    // Game Over display
+    private val gameOverPaint = Paint().apply {
+        color = Color.RED
+        textSize = 120f
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+        setShadowLayer(5f, 3f, 3f, Color.BLACK) // Add shadow for better visibility
+    }
+
     // Enemy spawning configuration
     private val ENEMY_LIMIT = 8
     private val SPAWN_INTERVAL: Long = 3000
     private val handler = Handler(Looper.getMainLooper())
     private val spawnRunnable = object : Runnable {
         override fun run() {
-            if (gameStarted) {
+            if (gameStarted && !isGameOver) {
                 spawnEnemy()
                 handler.postDelayed(this, SPAWN_INTERVAL)
             }
@@ -69,6 +80,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
 
         val scaledPauseButton = Bitmap.createScaledBitmap(pauseButtonBitmap, 150, 80, true)
         pauseButtonBitmap = scaledPauseButton
+
+        // Scale restart button (same as start button)
+        val scaledRestartButton = Bitmap.createScaledBitmap(restartButtonBitmap, 300, 100, true)
+        restartButtonBitmap = scaledRestartButton
 
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
@@ -91,12 +106,31 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             screenWidth - 20,
             20 + scaledPauseButton.height
         )
+
+        // Position restart button below the "Game Over" text (will be properly positioned in onSizeChanged)
+        restartButtonRect.set(
+            startButtonX,
+            startButtonY + 200, // Positioned below game over text
+            startButtonX + scaledRestartButton.width,
+            startButtonY + 200 + scaledRestartButton.height
+        )
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         // Update button positions when size changes
         setupButtons()
+
+        // Update restart button position based on the center of the screen
+        val restartButtonX = (w - restartButtonBitmap.width) / 2
+        val restartButtonY = (h / 2) + 150 // Position below the "Game Over" text
+
+        restartButtonRect.set(
+            restartButtonX,
+            restartButtonY,
+            restartButtonX + restartButtonBitmap.width,
+            restartButtonY + restartButtonBitmap.height
+        )
     }
 
     override fun run() {
@@ -106,9 +140,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
             }
             draw()
             sleep()
-        }
-        if (isGameOver) {
-            showGameOver()
         }
     }
 
@@ -207,6 +238,14 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                     width - 20,
                     20 + pauseButtonBitmap.height
                 )
+
+                // Update restart button position as well
+                restartButtonRect.set(
+                    buttonX,
+                    height / 2 + 150,
+                    buttonX + restartButtonBitmap.width,
+                    height / 2 + 150 + restartButtonBitmap.height
+                )
             }
 
             if (!gameStarted) {
@@ -238,6 +277,36 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
 
                 // Draw score with better visibility - positioned more to the left
                 canvas.drawText("Score: $score", 30f, pauseButtonRect.bottom + 50f, scorePaint)
+
+                // Draw game over overlay when the game is over
+                if (isGameOver) {
+                    // Create a semi-transparent overlay
+                    val overlayPaint = Paint().apply {
+                        color = Color.BLACK
+                        alpha = 180 // Semi-transparent
+                    }
+                    canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
+
+                    // Draw "GAME OVER" text in the center of the screen
+                    canvas.drawText("GAME OVER", width / 2f, height / 2f - 50, gameOverPaint)
+
+                    // Draw final score
+                    val finalScorePaint = Paint().apply {
+                        color = Color.WHITE
+                        textSize = 70f
+                        textAlign = Paint.Align.CENTER
+                        isFakeBoldText = true
+                    }
+                    canvas.drawText("Final Score: $score", width / 2f, height / 2f + 50, finalScorePaint)
+
+                    // Draw restart button
+                    canvas.drawBitmap(
+                        restartButtonBitmap,
+                        restartButtonRect.left.toFloat(),
+                        restartButtonRect.top.toFloat(),
+                        null
+                    )
+                }
             }
 
             holder.unlockCanvasAndPost(canvas)
@@ -304,10 +373,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
         return newEnemy
     }
 
-    private fun showGameOver() {
-        Toast.makeText(context, "Game Over! Final Score: $score", Toast.LENGTH_LONG).show()
-    }
-
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -322,19 +387,30 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                         return true
                     }
                 } else {
+                    // Check if the game is over and restart button is clicked
+                    if (isGameOver && restartButtonRect.contains(touchX, touchY)) {
+                        // Restart the game
+                        restartGame()
+                        return true
+                    }
+
                     // Check if the pause button was clicked
-                    if (pauseButtonRect.contains(touchX, touchY)) {
+                    if (!isGameOver && pauseButtonRect.contains(touchX, touchY)) {
                         togglePause()
                         return true
                     }
 
                     // Fire a bullet when touching the screen (except on buttons)
-                    fireBullet()
+                    if (!isGameOver &&
+                        !pauseButtonRect.contains(touchX, touchY) &&
+                        !restartButtonRect.contains(touchX, touchY)) {
+                        fireBullet()
+                    }
                 }
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (gameStarted) {
+                if (gameStarted && !isGameOver) {
                     val touchX = event.x
                     val touchY = event.y
 
@@ -388,6 +464,12 @@ class GameView(context: Context) : SurfaceView(context), Runnable {
                 }
             }
         }, 500)
+    }
+
+    private fun restartGame() {
+        // Reset game state and start a new game
+        gameStarted = true
+        startGame()
     }
 
     fun pause() {
