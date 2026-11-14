@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Editor and IDE settings
+.idea/
+.vscode/

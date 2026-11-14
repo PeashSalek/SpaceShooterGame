@@ -1,99 +1,61 @@
-# Space Shooter Game
+# 🚀 Space Shooter
 
-## Overview
-Space Shooter Game is a 2D space shooting game developed using Kotlin in Android Studio. The game features a spaceship controlled by the player, who must navigate through enemies and avoid their projectiles while shooting down enemies. Players can control the ship freely within the screen, battle waves of enemies, and enjoy fast-paced action.
+A fast-paced 2D arcade shooter for Android, written in **Kotlin** with a custom game loop on a `SurfaceView` — no game engine.
 
-**Note:** This application is currently in the Minimum Viable Product (MVP) stage. Core features such as enemy spawning, movement, collision detection, and player controls are functional, but additional enhancements and features are planned in future development cycles.
+Fly your ship anywhere on screen, tap to fire, and survive waves of enemies dropping from above.
 
 ## Features
 
--Player Movement: The player can move their spaceship freely across the screen.
+- **Custom 60 FPS game loop** running on its own thread, drawing directly to a `SurfaceView` canvas
+- **Touch controls** – drag to steer the ship in any direction, tap to shoot
+- **Enemy spawning with spacing rules** so new enemies don't stack on top of each other
+- **Collision detection** between bullets, enemies and the player
+- **Score counter**, pause button, game-over screen with final score and restart
+- **Thread-safe updates** – enemy and bullet lists are synchronized between the game thread and the UI thread
 
--Enemy Spawning: Enemies spawn from the top of the screen and move downward, creating an exciting challenge.
+## Tech stack
 
--Real-Time Navigation: Players shoot enemies, avoid their projectiles, and aim for survival.
+| | |
+|---|---|
+| Language | Kotlin |
+| Platform | Android (Android Studio, Gradle Kotlin DSL) |
+| Rendering | `SurfaceView` + `Canvas`, custom game loop |
 
--Collision Detection: The game uses collision detection between the player’s bullets and enemies.
+## Project structure
 
--Game Over: The game ends when the player is hit by an enemy or enemy bullet.
+```
+app/src/main/java/com/example/spaceshootergame/
+├── GameActivity.kt   # hosts the game view, pauses/resumes with the app lifecycle
+├── GameView.kt       # game loop, spawning, collisions, input, drawing
+├── player.kt         # player ship movement and bounds
+├── Enemy.kt          # enemy movement and hitboxes
+└── Bullet.kt         # projectile movement and hitboxes
+```
 
+## Run it
 
-## Real-Time Enemy Movement
--Enemies move vertically from top to bottom, providing a challenging experience.
+1. Clone the repo
+   ```bash
+   git clone https://github.com/PeashSalek/SpaceShooterGame.git
+   ```
+2. Open the folder in **Android Studio** and let Gradle sync.
+3. Run on a device or emulator.
 
--The movement of enemies is randomized for dynamic gameplay.
+## How to play
 
+- **Drag** on the screen to move your ship
+- **Tap** to shoot
+- Don't let an enemy hit you — one hit and it's game over
+- Tap **Start** on the game-over screen to play again
 
-## Product Setup and Development
+## Roadmap
 
-To run this app correctly, the following setup is required:
+- [ ] Levels that speed up as your score grows
+- [ ] Saved high score
+- [ ] Sound effects and music
+- [ ] More enemy types and movement patterns (art for these is already in `res/drawable`)
 
-- **Hardware**
+## Author
 
-Android Device (or emulator) for running the game.
-
-
-- **Software**
-
--Android Studio (latest version)
-
--Kotlin
-
-
-## Installation
-
-To run this game on your local machine, follow these steps:
-
-**Clone the Repository:**
-
-
-Open your terminal or command prompt and run:
-
--git clone https://github.com/yourusername/spaceshootergame.git
-
-
-**Open the project in Android Studio:**
-
--Open Android Studio and choose Open an Existing Project.
-
--Navigate to the cloned repository and open it.
-
-
-**Run the Project:**
-
--Connect an Android device or use the emulator.
-
--Click on the Run button in Android Studio.
-
-
-## How to Play
-
--Move the Player: Use touch controls or arrow keys to move your spaceship.
-
--Shoot: Tap the screen to shoot enemy ships.
-
--Avoid Enemies: Avoid being hit by enemy bullets or crashing into enemies.
-
-
-## Known Bugs
-
--The enemies might spawn too closely together in some instances, causing difficulty in differentiating their positions. This is being addressed in future updates.
-
--Minor performance issues when many projectiles are on the screen at the same time.
-
--Game sounds are in the works for future versions.
-
-
-## Future Development
-
--The current version of the game is an MVP, and the following features are planned for future versions:
-
--Sound effects and background music.
-
--Multiple levels with increasing difficulty.
-
--Leaderboards to track player scores.
-
--Improved enemy movement patterns.
-
--In-game settings for customizing controls, sound, etc.
+**Peash Salek** — MSc student in Software Engineering, LUT University, Finland
+[GitHub](https://github.com/PeashSalek) · [LinkedIn](https://www.linkedin.com/in/piash-salek-4a2916262)
